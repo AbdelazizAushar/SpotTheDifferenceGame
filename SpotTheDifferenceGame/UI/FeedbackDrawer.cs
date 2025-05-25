@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 
+
 namespace SpotTheDifferenceGame.UI
 {
     public static class FeedbackDrawer
@@ -25,5 +26,8 @@ namespace SpotTheDifferenceGame.UI
             }
             return bmp;
         }
+
+
+
     }
 }

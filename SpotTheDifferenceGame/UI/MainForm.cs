@@ -1,4 +1,6 @@
-﻿using System;
+﻿// MainForm.cs
+using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using SpotTheDifferenceGame.Utils;
@@ -21,8 +23,14 @@ namespace SpotTheDifferenceGame.UI
         // Game Logic
         private State gameState;
         private ModeManager modeManager;
+        private List<Difference> differences;
+        private List<Difference> foundDifferences = new List<Difference>();
+        private Bitmap originalLeft;
+        private Bitmap originalRight;
 
-        private readonly string basePath = @"..\..\Assets\Images\";
+
+        private readonly string basePath = @"D:\SpotTheDifferenceGame\SpotTheDifferenceGame\Assets\Images\";
+        private bool debugMode = true; // Toggle to draw rectangles
 
         public MainForm()
         {
@@ -32,7 +40,6 @@ namespace SpotTheDifferenceGame.UI
 
         private void SetupUI()
         {
-            Console.WriteLine(basePath);
             this.Text = "Spot the Difference Game";
             this.ClientSize = new Size(800, 700);
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -61,8 +68,6 @@ namespace SpotTheDifferenceGame.UI
                 BorderStyle = BorderStyle.FixedSingle,
                 Enabled = false
             };
-            this.Controls.Add(pictureBoxLeft);
-
             pictureBoxRight = new PictureBox()
             {
                 Location = new Point(410, 60),
@@ -71,6 +76,7 @@ namespace SpotTheDifferenceGame.UI
                 BorderStyle = BorderStyle.FixedSingle,
                 Enabled = false
             };
+            this.Controls.Add(pictureBoxLeft);
             this.Controls.Add(pictureBoxRight);
 
             labelStatus = new Label()
@@ -80,8 +86,6 @@ namespace SpotTheDifferenceGame.UI
                 Text = "Select difficulty and press Start.",
                 Font = labelFont
             };
-            this.Controls.Add(labelStatus);
-
             labelFound = new Label()
             {
                 Location = new Point(30, 570),
@@ -89,8 +93,6 @@ namespace SpotTheDifferenceGame.UI
                 Font = labelFont,
                 Text = "Found: 0"
             };
-            this.Controls.Add(labelFound);
-
             labelRemaining = new Label()
             {
                 Location = new Point(200, 570),
@@ -98,6 +100,8 @@ namespace SpotTheDifferenceGame.UI
                 Font = labelFont,
                 Text = "Remaining: 0"
             };
+            this.Controls.Add(labelStatus);
+            this.Controls.Add(labelFound);
             this.Controls.Add(labelRemaining);
 
             Label diffLabel = new Label()
@@ -107,8 +111,6 @@ namespace SpotTheDifferenceGame.UI
                 Size = new Size(80, 25),
                 Font = labelFont
             };
-            this.Controls.Add(diffLabel);
-
             comboDifficulty = new ComboBox()
             {
                 Location = new Point(120, 610),
@@ -118,6 +120,7 @@ namespace SpotTheDifferenceGame.UI
             };
             comboDifficulty.Items.AddRange(new string[] { "Easy", "Medium", "Hard" });
             comboDifficulty.SelectedIndex = 0;
+            this.Controls.Add(diffLabel);
             this.Controls.Add(comboDifficulty);
 
             Label modeLabel = new Label()
@@ -127,8 +130,6 @@ namespace SpotTheDifferenceGame.UI
                 Size = new Size(100, 25),
                 Font = labelFont
             };
-            this.Controls.Add(modeLabel);
-
             comboMode = new ComboBox()
             {
                 Location = new Point(410, 610),
@@ -138,6 +139,7 @@ namespace SpotTheDifferenceGame.UI
             };
             comboMode.Items.AddRange(new string[] { "Timer", "Attempts" });
             comboMode.SelectedIndex = 0;
+            this.Controls.Add(modeLabel);
             this.Controls.Add(comboMode);
 
             buttonStart = new Button()
@@ -154,7 +156,6 @@ namespace SpotTheDifferenceGame.UI
             buttonStart.Click += ButtonStart_Click;
             this.Controls.Add(buttonStart);
 
-            // Click events
             pictureBoxLeft.MouseClick += PictureBox_Click;
             pictureBoxRight.MouseClick += PictureBox_Click;
         }
@@ -164,7 +165,8 @@ namespace SpotTheDifferenceGame.UI
             string difficulty = comboDifficulty.SelectedItem.ToString();
             string mode = comboMode.SelectedItem.ToString();
 
-            gameState = new State(totalDifferences: 5, maxAttempts: 10, maxLevels: 6);
+            gameState = new State(totalDifferences: 0, maxAttempts: 10, maxLevels: 6);
+            gameState.GameMode = mode;
             modeManager = new ModeManager();
 
             pictureBoxLeft.Enabled = true;
@@ -180,17 +182,8 @@ namespace SpotTheDifferenceGame.UI
             {
                 modeManager.StartTimer(60);
                 labelRemaining.Text = "Time Left: 60 sec";
-
-                modeManager.Tick += () =>
-                {
-                    labelRemaining.Text = $"Time Left: {modeManager.TimeLeft} sec";
-                };
-
-                modeManager.TimeUp += () =>
-                {
-                    MessageBox.Show("⏰ Time's up!");
-                    EndGame();
-                };
+                modeManager.Tick += () => labelRemaining.Text = $"Time Left: {modeManager.TimeLeft} sec";
+                modeManager.TimeUp += () => { MessageBox.Show("⏰ Time's up!"); EndGame(); };
             }
             else
             {
@@ -212,10 +205,38 @@ namespace SpotTheDifferenceGame.UI
 
             pictureBoxLeft.Image?.Dispose();
             pictureBoxRight.Image?.Dispose();
-            pictureBoxLeft.Image = left;
-            pictureBoxRight.Image = right;
+            pictureBoxLeft.Image = new Bitmap(left);
+            pictureBoxRight.Image = new Bitmap(right);
 
-            labelFound.Text = "Found: 0";
+            originalLeft = new Bitmap(left);
+            originalRight = new Bitmap(right);
+
+
+            
+            var detector = new DifferenceDetector();
+            differences = detector.GetDifferences(originalLeft, originalRight);
+            foundDifferences.Clear();
+            gameState.SetTotalDifferences(differences.Count);
+
+            labelStatus.Text += $" | Differences detected: {differences.Count}";
+
+            if (debugMode)
+            {
+                DrawDebugRectangles(pictureBoxLeft.Image, differences);
+                DrawDebugRectangles(pictureBoxRight.Image, differences);
+            }
+        }
+
+        private void DrawDebugRectangles(Image img, List<Difference> diffs)
+        {
+            using (Graphics g = Graphics.FromImage(img))
+            using (Pen pen = new Pen(Color.Red, 3))
+            {
+                foreach (var diff in diffs)
+                    g.DrawRectangle(pen, diff.BoundingBox);
+            }
+            pictureBoxLeft.Refresh();
+            pictureBoxRight.Refresh();
         }
 
         private void PictureBox_Click(object sender, MouseEventArgs e)
@@ -223,37 +244,46 @@ namespace SpotTheDifferenceGame.UI
             if (pictureBoxLeft.Image == null || pictureBoxRight.Image == null)
                 return;
 
-            PictureBox clickedBox = sender as PictureBox;
-
+            var clickedBox = (PictureBox)sender;
             int x = (int)(e.X * ((float)clickedBox.Image.Width / clickedBox.Width));
             int y = (int)(e.Y * ((float)clickedBox.Image.Height / clickedBox.Height));
-            Point clickPoint = new Point(x, y);
+            var clickPoint = new Point(x, y);
 
-            // TEMP: simulate correct click randomly
-            bool isCorrect = new Random().Next(2) == 0;
+            bool isCorrect = false;
+            Difference foundDiff = null;
+            foreach (var diff in differences)
+            {
+                if (!foundDifferences.Contains(diff) && diff.IsNear(x, y))
+                {
+                    foundDifferences.Add(diff);
+                    foundDiff = diff;
+                    isCorrect = true;
+                    break;
+                }
+            }
 
             clickedBox.Image = FeedbackDrawer.DrawCircle(clickedBox.Image, clickPoint, isCorrect);
+            var otherBox = clickedBox == pictureBoxLeft ? pictureBoxRight : pictureBoxLeft;
 
-            if (isCorrect)
+            if (isCorrect && foundDiff != null)
             {
+                otherBox.Image = FeedbackDrawer.DrawCircle(otherBox.Image, foundDiff.CenterPoint, true);
+                SoundPlayerHelper.PlayCorrect();
                 bool levelComplete = gameState.RegisterCorrect();
-                labelFound.Text = $"Found: {gameState.FoundDifferences}";
+                labelFound.Text = $"Found: {foundDifferences.Count}";
 
-                if (levelComplete)
+                if (levelComplete || foundDifferences.Count == differences.Count)
                 {
                     modeManager?.StopTimer();
                     MessageBox.Show("✅ Level complete!");
-
                     if (!gameState.AdvanceLevel())
                     {
                         MessageBox.Show("🎉 You completed all levels!");
                         EndGame();
                         return;
                     }
-
                     LoadLevelImages(comboDifficulty.SelectedItem.ToString(), gameState.CurrentLevel);
                     labelStatus.Text = $"Difficulty: {comboDifficulty.SelectedItem} | Level {gameState.CurrentLevel}";
-
                     if (comboMode.SelectedItem.ToString() == "Timer")
                     {
                         modeManager.StartTimer(60);
@@ -267,11 +297,11 @@ namespace SpotTheDifferenceGame.UI
             }
             else
             {
+                SoundPlayerHelper.PlayWrong();
                 if (comboMode.SelectedItem.ToString() == "Attempts")
                 {
                     bool outOfAttempts = gameState.RegisterWrong();
                     labelRemaining.Text = $"Attempts Left: {gameState.RemainingAttempts}";
-
                     if (outOfAttempts)
                     {
                         MessageBox.Show("❌ No attempts left!");
@@ -283,11 +313,8 @@ namespace SpotTheDifferenceGame.UI
 
         private void EndGame()
         {
-            pictureBoxLeft.Enabled = false;
-            pictureBoxRight.Enabled = false;
-            buttonStart.Enabled = true;
-            comboDifficulty.Enabled = true;
-            comboMode.Enabled = true;
+            pictureBoxLeft.Enabled = pictureBoxRight.Enabled = false;
+            buttonStart.Enabled = comboDifficulty.Enabled = comboMode.Enabled = true;
             labelStatus.Text = "Game over. Press Start to try again.";
             modeManager?.StopTimer();
         }
