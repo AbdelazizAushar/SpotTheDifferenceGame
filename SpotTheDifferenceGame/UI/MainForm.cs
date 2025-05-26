@@ -28,8 +28,15 @@ namespace SpotTheDifferenceGame.UI
         private Bitmap originalLeft;
         private Bitmap originalRight;
 
+        // Layout settings
+        private const int FormWidth = 1550;
+        private const int FormHeight = 700;
+        private readonly Size pictureBoxSize = new Size(725, 500);
+        private readonly Point leftPictureBoxLocation = new Point(25, 60);   // centered start
+        private readonly Point rightPictureBoxLocation = new Point(775, 60); // 75 + 750 + 50
 
-        private readonly string basePath = @"D:\SpotTheDifferenceGame\SpotTheDifferenceGame\Assets\Images\";
+
+        private readonly string basePath = @"..\..\..\Assets\Images\";
         private bool debugMode = true; // Toggle to draw rectangles
 
         public MainForm()
@@ -41,7 +48,7 @@ namespace SpotTheDifferenceGame.UI
         private void SetupUI()
         {
             this.Text = "Spot the Difference Game";
-            this.ClientSize = new Size(800, 700);
+            this.ClientSize = new Size(FormWidth, FormHeight);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
@@ -55,25 +62,23 @@ namespace SpotTheDifferenceGame.UI
                 Text = "Spot the Difference",
                 Font = new Font("Segoe UI", 22, FontStyle.Bold),
                 ForeColor = Color.DarkSlateBlue,
-                Location = new Point(280, 10),
+                Location = new Point((FormWidth - 300) / 2, 10),
                 AutoSize = true
             };
             this.Controls.Add(titleLabel);
 
             pictureBoxLeft = new PictureBox()
             {
-                Location = new Point(30, 60),
-                Size = new Size(350, 467),
+                Location = leftPictureBoxLocation,
+                Size = pictureBoxSize,
                 SizeMode = PictureBoxSizeMode.Zoom,
-                BorderStyle = BorderStyle.FixedSingle,
                 Enabled = false
             };
             pictureBoxRight = new PictureBox()
             {
-                Location = new Point(410, 60),
-                Size = new Size(350, 467),
+                Location = rightPictureBoxLocation,
+                Size = pictureBoxSize,
                 SizeMode = PictureBoxSizeMode.Zoom,
-                BorderStyle = BorderStyle.FixedSingle,
                 Enabled = false
             };
             this.Controls.Add(pictureBoxLeft);
@@ -81,21 +86,21 @@ namespace SpotTheDifferenceGame.UI
 
             labelStatus = new Label()
             {
-                Location = new Point(30, 540),
-                Size = new Size(730, 30),
+                Location = new Point(100, 580),
+                Size = new Size(1200, 30),
                 Text = "Select difficulty and press Start.",
                 Font = labelFont
             };
             labelFound = new Label()
             {
-                Location = new Point(30, 570),
+                Location = new Point(100, 610),
                 Size = new Size(150, 25),
                 Font = labelFont,
                 Text = "Found: 0"
             };
             labelRemaining = new Label()
             {
-                Location = new Point(200, 570),
+                Location = new Point(300, 610),
                 Size = new Size(250, 25),
                 Font = labelFont,
                 Text = "Remaining: 0"
@@ -107,13 +112,13 @@ namespace SpotTheDifferenceGame.UI
             Label diffLabel = new Label()
             {
                 Text = "Difficulty:",
-                Location = new Point(30, 610),
+                Location = new Point(100, 640),
                 Size = new Size(80, 25),
                 Font = labelFont
             };
             comboDifficulty = new ComboBox()
             {
-                Location = new Point(120, 610),
+                Location = new Point(180, 640),
                 Size = new Size(140, 30),
                 DropDownStyle = ComboBoxStyle.DropDownList,
                 Font = comboFont
@@ -126,13 +131,13 @@ namespace SpotTheDifferenceGame.UI
             Label modeLabel = new Label()
             {
                 Text = "Game Mode:",
-                Location = new Point(300, 610),
+                Location = new Point(360, 640),
                 Size = new Size(100, 25),
                 Font = labelFont
             };
             comboMode = new ComboBox()
             {
-                Location = new Point(410, 610),
+                Location = new Point(470, 640),
                 Size = new Size(140, 30),
                 DropDownStyle = ComboBoxStyle.DropDownList,
                 Font = comboFont
@@ -144,7 +149,7 @@ namespace SpotTheDifferenceGame.UI
 
             buttonStart = new Button()
             {
-                Location = new Point(580, 610),
+                Location = new Point(1150, 635),
                 Size = new Size(150, 35),
                 Text = "Start Game",
                 Font = new Font("Segoe UI", 11, FontStyle.Bold),
@@ -211,8 +216,6 @@ namespace SpotTheDifferenceGame.UI
             originalLeft = new Bitmap(left);
             originalRight = new Bitmap(right);
 
-
-            
             var detector = new DifferenceDetector();
             differences = detector.GetDifferences(originalLeft, originalRight);
             foundDifferences.Clear();
@@ -245,9 +248,9 @@ namespace SpotTheDifferenceGame.UI
                 return;
 
             var clickedBox = (PictureBox)sender;
-            int x = (int)(e.X * ((float)clickedBox.Image.Width / clickedBox.Width));
-            int y = (int)(e.Y * ((float)clickedBox.Image.Height / clickedBox.Height));
-            var clickPoint = new Point(x, y);
+            Point clickPoint = TranslateZoomedClick(clickedBox, e);
+            int x = clickPoint.X;
+            int y = clickPoint.Y;
 
             bool isCorrect = false;
             Difference foundDiff = null;
@@ -310,6 +313,50 @@ namespace SpotTheDifferenceGame.UI
                 }
             }
         }
+
+        private Point TranslateZoomedClick(PictureBox pb, MouseEventArgs e)
+        {
+            if (pb.Image == null) return Point.Empty;
+
+            int imgWidth = pb.Image.Width;
+            int imgHeight = pb.Image.Height;
+            int pbWidth = pb.Width;
+            int pbHeight = pb.Height;
+
+            float imgAspect = (float)imgWidth / imgHeight;
+            float pbAspect = (float)pbWidth / pbHeight;
+
+            int drawWidth, drawHeight, offsetX, offsetY;
+
+            if (imgAspect > pbAspect)
+            {
+                drawWidth = pbWidth;
+                drawHeight = (int)(pbWidth / imgAspect);
+                offsetX = 0;
+                offsetY = (pbHeight - drawHeight) / 2;
+            }
+            else
+            {
+                drawHeight = pbHeight;
+                drawWidth = (int)(pbHeight * imgAspect);
+                offsetX = (pbWidth - drawWidth) / 2;
+                offsetY = 0;
+            }
+
+            // Click relative to image display area
+            int relX = e.X - offsetX;
+            int relY = e.Y - offsetY;
+
+            if (relX < 0 || relY < 0 || relX >= drawWidth || relY >= drawHeight)
+                return Point.Empty; // click was on padding, not image
+
+            // Scale to actual image
+            float scaleX = (float)imgWidth / drawWidth;
+            float scaleY = (float)imgHeight / drawHeight;
+
+            return new Point((int)(relX * scaleX), (int)(relY * scaleY));
+        }
+
 
         private void EndGame()
         {

@@ -5,7 +5,7 @@ namespace SpotTheDifferenceGame.Utils
 {
     public static class SoundPlayerHelper
     {
-        private static readonly string basePath = @"..\..\Assets\Sounds\";
+        private static readonly string basePath = @"..\..\..\Assets\Sounds\";
 
         public static void PlayCorrect()
         {
