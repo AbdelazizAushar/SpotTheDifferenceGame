@@ -1,5 +1,4 @@
-﻿// MainForm.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -10,7 +9,6 @@ namespace SpotTheDifferenceGame.UI
 {
     public partial class MainForm : Form
     {
-        // UI Controls
         private PictureBox pictureBoxLeft;
         private PictureBox pictureBoxRight;
         private Label labelStatus;
@@ -20,7 +18,6 @@ namespace SpotTheDifferenceGame.UI
         private ComboBox comboDifficulty;
         private Button buttonStart;
 
-        // Game Logic
         private State gameState;
         private ModeManager modeManager;
         private List<Difference> differences;
@@ -32,12 +29,12 @@ namespace SpotTheDifferenceGame.UI
         private const int FormWidth = 1550;
         private const int FormHeight = 700;
         private readonly Size pictureBoxSize = new Size(725, 500);
-        private readonly Point leftPictureBoxLocation = new Point(25, 60);   // centered start
-        private readonly Point rightPictureBoxLocation = new Point(775, 60); // 75 + 750 + 50
+        private readonly Point leftPictureBoxLocation = new Point(25, 60);
+        private readonly Point rightPictureBoxLocation = new Point(775, 60);
 
 
         private readonly string basePath = @"..\..\..\Assets\Images\";
-        private bool debugMode = true; // Toggle to draw rectangles
+        private bool debugMode = true;
 
         public MainForm()
         {
@@ -343,14 +340,12 @@ namespace SpotTheDifferenceGame.UI
                 offsetY = 0;
             }
 
-            // Click relative to image display area
             int relX = e.X - offsetX;
             int relY = e.Y - offsetY;
 
             if (relX < 0 || relY < 0 || relX >= drawWidth || relY >= drawHeight)
-                return Point.Empty; // click was on padding, not image
+                return Point.Empty;
 
-            // Scale to actual image
             float scaleX = (float)imgWidth / drawWidth;
             float scaleY = (float)imgHeight / drawHeight;
 

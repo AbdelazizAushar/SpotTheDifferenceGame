@@ -21,10 +21,9 @@ namespace SpotTheDifferenceGame.Logic
             ResetLevel();
         }
 
-        // New method to set total differences dynamically
         public void SetTotalDifferences(int count)
         {
-            TotalDifferences = Math.Max(1, count); // Ensure at least 1 difference
+            TotalDifferences = Math.Max(1, count);
         }
 
         public void ResetLevel()
@@ -37,9 +36,8 @@ namespace SpotTheDifferenceGame.Logic
         public bool RegisterCorrect()
         {
             FoundDifferences++;
-            TotalScore += 10; // award points for each correct spot
+            TotalScore += 10;
             
-            // Level complete when all differences are found
             if (FoundDifferences >= TotalDifferences)
                 return true;
             return false;

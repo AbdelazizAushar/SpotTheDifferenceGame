@@ -62,25 +62,20 @@ namespace SpotTheDifferenceGame.Logic
             using (Mat gray1 = new Mat())
             using (Mat gray2 = new Mat())
             {
-                // Convert to grayscale
                 CvInvoke.CvtColor(mat1, gray1, ColorConversion.Bgr2Gray);
                 CvInvoke.CvtColor(mat2, gray2, ColorConversion.Bgr2Gray);
 
-                // Apply Gaussian blur to reduce noise
                 CvInvoke.GaussianBlur(gray1, gray1, new Size(GaussianBlurSize, GaussianBlurSize), 0);
                 CvInvoke.GaussianBlur(gray2, gray2, new Size(GaussianBlurSize, GaussianBlurSize), 0);
 
-                // Compute absolute difference
                 using (Mat diff = new Mat())
                 {
                     CvInvoke.AbsDiff(gray1, gray2, diff);
 
-                    // Threshold the difference
                     using (Mat thresh = new Mat())
                     {
                         CvInvoke.Threshold(diff, thresh, 0, 255, ThresholdType.Binary | ThresholdType.Otsu);
 
-                        // Morphological operations to clean up the image
                         using (Mat kernel = CvInvoke.GetStructuringElement(ElementShape.Rectangle,
                             new Size(GaussianBlurSize, GaussianBlurSize), new Point(-1, -1)))
                         {
@@ -89,7 +84,6 @@ namespace SpotTheDifferenceGame.Logic
                             CvInvoke.Dilate(thresh, thresh, kernel, new Point(-1, -1),
                                 DilationIterations, BorderType.Default, new MCvScalar());
 
-                            // Find and process contours
                             return FindAndProcessContours(thresh, diff);
                         }
                     }
@@ -114,7 +108,6 @@ namespace SpotTheDifferenceGame.Logic
                     {
                         Rectangle box = CvInvoke.BoundingRectangle(contours[i]);
 
-                        // Check if the difference is significant enough
                         using (Mat roi = new Mat(differenceImage, box))
                         {
                             MCvScalar meanVal = CvInvoke.Mean(roi);
@@ -127,7 +120,6 @@ namespace SpotTheDifferenceGame.Logic
                 }
             }
 
-            // Merge overlapping rectangles and create difference objects
             List<Rectangle> mergedBoxes = MergeOverlappingRectangles(boxes, MergeOverlapThreshold);
             foreach (var box in mergedBoxes)
             {

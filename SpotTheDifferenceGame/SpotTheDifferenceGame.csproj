@@ -179,6 +179,7 @@
     <Content Include="Assets\Images\Hard\6_left.jpg" />
     <Content Include="Assets\Images\Hard\6_right.jpg" />
     <Content Include="Assets\Images\Medium\1_left.jpg" />
+    <Content Include="Assets\Images\Medium\2_left.jpg" />
     <Content Include="Assets\Images\Medium\2_right.jpg" />
     <Content Include="Assets\Images\Medium\1_right.jpg" />
     <Content Include="Assets\Images\Medium\3_left.jpg" />

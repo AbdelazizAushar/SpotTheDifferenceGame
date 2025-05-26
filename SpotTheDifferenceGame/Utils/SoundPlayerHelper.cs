@@ -32,7 +32,7 @@ namespace SpotTheDifferenceGame.Utils
                 }
                 catch
                 {
-                    // Optional: log or ignore sound errors
+                    
                 }
             }
         }
