@@ -167,7 +167,7 @@ namespace SpotTheDifferenceGame.UI
             string difficulty = comboDifficulty.SelectedItem.ToString();
             string mode = comboMode.SelectedItem.ToString();
 
-            gameState = new State(totalDifferences: 0, maxAttempts: 10, maxLevels: 6);
+            gameState = new State(totalDifferences: 0, maxAttempts: 10, maxLevels: 3);
             gameState.GameMode = mode;
             modeManager = new ModeManager();
 
@@ -221,6 +221,8 @@ namespace SpotTheDifferenceGame.UI
             LoadLevelImages(difficulty, gameState.CurrentLevel);
         }
 
+        private string baseStatusText = "Ready"; // Store this as a field
+
         private void LoadLevelImages(string difficulty, int level)
         {
             var (left, right) = ImageHelper.LoadImagePair(basePath, difficulty, level);
@@ -230,22 +232,17 @@ namespace SpotTheDifferenceGame.UI
                 EndGame();
                 return;
             }
-
             pictureBoxLeft.Image?.Dispose();
             pictureBoxRight.Image?.Dispose();
             pictureBoxLeft.Image = new Bitmap(left);
             pictureBoxRight.Image = new Bitmap(right);
-
             originalLeft = new Bitmap(left);
             originalRight = new Bitmap(right);
-
             var detector = new DifferenceDetector();
             differences = detector.GetDifferences(originalLeft, originalRight);
             foundDifferences.Clear();
             gameState.SetTotalDifferences(differences.Count);
-
-            labelStatus.Text += $" | Differences detected: {differences.Count}";
-
+            labelStatus.Text = $"{baseStatusText} | Differences detected: {differences.Count}";
             if (debugMode)
             {
                 DrawDebugRectangles(pictureBoxLeft.Image, differences);
