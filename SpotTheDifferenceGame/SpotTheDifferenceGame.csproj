@@ -160,12 +160,6 @@
     <Content Include="Assets\Images\Easy\2_right.jpg" />
     <Content Include="Assets\Images\Easy\3_left.jpg" />
     <Content Include="Assets\Images\Easy\3_right.jpg" />
-    <Content Include="Assets\Images\Easy\4_left.jpg" />
-    <Content Include="Assets\Images\Easy\4_right.jpg" />
-    <Content Include="Assets\Images\Easy\5_left.jpg" />
-    <Content Include="Assets\Images\Easy\5_right.jpg" />
-    <Content Include="Assets\Images\Easy\6_left.jpg" />
-    <Content Include="Assets\Images\Easy\6_right.jpg" />
     <Content Include="Assets\Images\Hard\1_left.jpg" />
     <Content Include="Assets\Images\Hard\1_right.jpg" />
     <Content Include="Assets\Images\Hard\2_left.jpg" />
@@ -174,22 +168,12 @@
     <Content Include="Assets\Images\Hard\3_right.jpg" />
     <Content Include="Assets\Images\Hard\4_left.jpg" />
     <Content Include="Assets\Images\Hard\4_right.jpg" />
-    <Content Include="Assets\Images\Hard\5_left.jpg" />
-    <Content Include="Assets\Images\Hard\5_right.jpg" />
-    <Content Include="Assets\Images\Hard\6_left.jpg" />
-    <Content Include="Assets\Images\Hard\6_right.jpg" />
     <Content Include="Assets\Images\Medium\1_left.jpg" />
+    <Content Include="Assets\Images\Medium\1_right.jpg" />
     <Content Include="Assets\Images\Medium\2_left.jpg" />
     <Content Include="Assets\Images\Medium\2_right.jpg" />
-    <Content Include="Assets\Images\Medium\1_right.jpg" />
     <Content Include="Assets\Images\Medium\3_left.jpg" />
     <Content Include="Assets\Images\Medium\3_right.jpg" />
-    <Content Include="Assets\Images\Medium\4_left.jpg" />
-    <Content Include="Assets\Images\Medium\4_right.jpg" />
-    <Content Include="Assets\Images\Medium\5_left.jpg" />
-    <Content Include="Assets\Images\Medium\5_right.jpg" />
-    <Content Include="Assets\Images\Medium\6_left.jpg" />
-    <Content Include="Assets\Images\Medium\6_right.jpg" />
     <Content Include="Assets\Sounds\correct.wav" />
     <Content Include="Assets\Sounds\fail.wav" />
   </ItemGroup>
