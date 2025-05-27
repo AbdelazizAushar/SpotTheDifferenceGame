@@ -180,12 +180,38 @@ namespace SpotTheDifferenceGame.UI
             labelStatus.Text = $"Difficulty: {difficulty} | Level {gameState.CurrentLevel}";
             labelFound.Text = "Found: 0";
 
+            int timerDuration;
+            switch (difficulty)
+            {
+                case "Easy":
+                    timerDuration = 30;
+                    break;
+                case "Medium":
+                    timerDuration = 45;
+                    break;
+                case "Hard":
+                    timerDuration = 60;
+                    break;
+                default:
+                    timerDuration = 60;
+                    break;
+            }
+
             if (mode == "Timer")
             {
-                modeManager.StartTimer(60);
-                labelRemaining.Text = "Time Left: 60 sec";
-                modeManager.Tick += () => labelRemaining.Text = $"Time Left: {modeManager.TimeLeft} sec";
-                modeManager.TimeUp += () => { MessageBox.Show("⏰ Time's up!"); EndGame(); };
+                modeManager.StartTimer(timerDuration);
+                labelRemaining.Text = $"Time Left: {timerDuration} sec";
+
+                modeManager.Tick += () =>
+                {
+                    labelRemaining.Text = $"Time Left: {modeManager.TimeLeft} sec";
+                };
+
+                modeManager.TimeUp += () =>
+                {
+                    MessageBox.Show("⏰ Time's up!");
+                    EndGame();
+                };
             }
             else
             {
