@@ -20,7 +20,6 @@ namespace SpotTheDifferenceGame.Logic
         public Point CenterPoint { get; set; }
         public DifferenceType Type { get; set; }
         public double Confidence { get; set; }
-        public int Tolerance { get; set; } = 30;
 
         public Difference(Rectangle boundingBox, DifferenceType type, double confidence = 1.0)
         {
@@ -35,8 +34,7 @@ namespace SpotTheDifferenceGame.Logic
 
         public bool IsNear(int x, int y)
         {
-            double distance = Math.Sqrt(Math.Pow(x - CenterPoint.X, 2) + Math.Pow(y - CenterPoint.Y, 2));
-            return distance <= Tolerance;
+            return BoundingBox.Contains(x, y);
         }
     }
 
