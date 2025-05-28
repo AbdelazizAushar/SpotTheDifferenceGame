@@ -9,11 +9,10 @@ namespace SpotTheDifferenceGame.Logic
         public int FoundDifferences { get; private set; } = 0;
         public int MaxAttempts { get; private set; }
         public int RemainingAttempts { get; private set; }
-        public int TotalScore { get; private set; } = 0;
         public bool IsGameOver { get; private set; } = false;
         public string GameMode { get; set; } = "Attempts";
 
-        public State(int totalDifferences = 5, int maxAttempts = 10, int maxLevels = 6)
+        public State(int totalDifferences = 5, int maxAttempts = 10, int maxLevels = 3)
         {
             TotalDifferences = totalDifferences;
             MaxAttempts = maxAttempts;
@@ -36,8 +35,6 @@ namespace SpotTheDifferenceGame.Logic
         public bool RegisterCorrect()
         {
             FoundDifferences++;
-            TotalScore += 10;
-            
             if (FoundDifferences >= TotalDifferences)
                 return true;
             return false;

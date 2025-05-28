@@ -25,13 +25,13 @@ namespace SpotTheDifferenceGame.UI
         private Bitmap originalLeft;
         private Bitmap originalRight;
 
-        // Layout settings
         private const int FormWidth = 1550;
         private const int FormHeight = 700;
         private readonly Size pictureBoxSize = new Size(725, 500);
         private readonly Point leftPictureBoxLocation = new Point(25, 60);
         private readonly Point rightPictureBoxLocation = new Point(775, 60);
 
+        int timerDuration = 60;
 
         private readonly string basePath = @"..\..\..\Assets\Images\";
         private bool debugMode = true;
@@ -180,7 +180,6 @@ namespace SpotTheDifferenceGame.UI
             labelStatus.Text = $"Difficulty: {difficulty} | Level {gameState.CurrentLevel}";
             labelFound.Text = "Found: 0";
 
-            int timerDuration;
             switch (difficulty)
             {
                 case "Easy":
@@ -221,7 +220,7 @@ namespace SpotTheDifferenceGame.UI
             LoadLevelImages(difficulty, gameState.CurrentLevel);
         }
 
-        private string baseStatusText = "Ready"; // Store this as a field
+        private string baseStatusText = "Ready";
 
         private void LoadLevelImages(string difficulty, int level)
         {
@@ -309,8 +308,8 @@ namespace SpotTheDifferenceGame.UI
                     labelStatus.Text = $"Difficulty: {comboDifficulty.SelectedItem} | Level {gameState.CurrentLevel}";
                     if (comboMode.SelectedItem.ToString() == "Timer")
                     {
-                        modeManager.StartTimer(60);
-                        labelRemaining.Text = "Time Left: 60 sec";
+                        modeManager.StartTimer(timerDuration);
+                        labelRemaining.Text = $"Time Left: {timerDuration} sec";
                     }
                     else
                     {

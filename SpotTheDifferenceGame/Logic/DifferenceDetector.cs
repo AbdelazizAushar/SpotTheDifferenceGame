@@ -11,11 +11,7 @@ namespace SpotTheDifferenceGame.Logic
 {
     public enum DifferenceType
     {
-        ColorChange,
-        ShapeChange,
-        ObjectAdded,
-        ObjectRemoved,
-        ObjectMoved
+        ColorChange
     }
 
     public class Difference
@@ -129,7 +125,7 @@ namespace SpotTheDifferenceGame.Logic
             return differences;
         }
 
-        private List<Rectangle> MergeOverlappingRectangles(List<Rectangle> rectangles, int overlapThreshold)
+        private List<Rectangle> MergeOverlappingRectangles(List<Rectangle> rectangles, int overlapAreaThreshold)
         {
             if (rectangles.Count == 0)
                 return new List<Rectangle>();
@@ -144,35 +140,34 @@ namespace SpotTheDifferenceGame.Logic
                 if (mergedFlags[i]) continue;
 
                 Rectangle current = rectangles[i];
-                bool wasMerged;
+                bool wasMergedIteration;
 
                 do
                 {
-                    wasMerged = false;
+                    wasMergedIteration = false;
                     for (int j = i + 1; j < rectangles.Count; j++)
                     {
                         if (mergedFlags[j]) continue;
 
-                        if (RectanglesOverlap(current, rectangles[j], overlapThreshold))
+                        if (RectanglesOverlap(current, rectangles[j], overlapAreaThreshold))
                         {
                             current = Rectangle.Union(current, rectangles[j]);
                             mergedFlags[j] = true;
-                            wasMerged = true;
+                            wasMergedIteration = true;
                         }
                     }
-                } while (wasMerged);
+                } while (wasMergedIteration);
 
                 merged.Add(current);
                 mergedFlags[i] = true;
             }
-
             return merged;
         }
 
-        private bool RectanglesOverlap(Rectangle r1, Rectangle r2, int threshold)
+        private bool RectanglesOverlap(Rectangle r1, Rectangle r2, int areaThreshold)
         {
             Rectangle intersect = Rectangle.Intersect(r1, r2);
-            return intersect != Rectangle.Empty && intersect.Width * intersect.Height >= threshold;
+            return intersect.Width > 0 && intersect.Height > 0 && (intersect.Width * intersect.Height >= areaThreshold);
         }
 
         private Mat BitmapToMat(Bitmap bmp)
@@ -180,19 +175,32 @@ namespace SpotTheDifferenceGame.Logic
             BitmapData bmpData = bmp.LockBits(
                 new Rectangle(0, 0, bmp.Width, bmp.Height),
                 ImageLockMode.ReadOnly,
-                PixelFormat.Format32bppArgb);
+                bmp.PixelFormat == PixelFormat.Format32bppArgb ? PixelFormat.Format32bppArgb : PixelFormat.Format24bppRgb);
 
+            Mat matWithAlpha = new Mat(bmp.Height, bmp.Width,
+                                (bmp.PixelFormat == PixelFormat.Format32bppArgb) ? DepthType.Cv8U : DepthType.Cv8U,
+                                (bmp.PixelFormat == PixelFormat.Format32bppArgb) ? 4 : 3,
+                                bmpData.Scan0,
+                                bmpData.Stride);
+
+            Mat result = new Mat();
             try
             {
-                Mat mat = new Mat(bmp.Height, bmp.Width, DepthType.Cv8U, 4, bmpData.Scan0, bmpData.Stride);
-                Mat result = new Mat();
-                CvInvoke.CvtColor(mat, result, ColorConversion.Bgra2Bgr);
-                return result;
+                if (bmp.PixelFormat == PixelFormat.Format32bppArgb)
+                {
+                    CvInvoke.CvtColor(matWithAlpha, result, ColorConversion.Bgra2Bgr);
+                }
+                else
+                {
+                    matWithAlpha.CopyTo(result);
+                }
             }
             finally
             {
                 bmp.UnlockBits(bmpData);
+                matWithAlpha.Dispose();
             }
+            return result;
         }
     }
 }
